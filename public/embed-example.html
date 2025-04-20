@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0"
+    />
+    <title>Lite Booking Calendar - Embed Example</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        line-height: 1.6;
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 20px;
+      }
+
+      h1 {
+        color: #333;
+        margin-bottom: 30px;
+      }
+
+      .instructions {
+        background-color: #f8f9fa;
+        border-left: 4px solid #007bff;
+        padding: 15px;
+        margin-bottom: 30px;
+      }
+
+      code {
+        background-color: #f1f1f1;
+        padding: 2px 5px;
+        border-radius: 3px;
+        font-family: monospace;
+      }
+
+      pre {
+        background-color: #f1f1f1;
+        padding: 15px;
+        border-radius: 5px;
+        overflow-x: auto;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Lite Booking Calendar - Embed Example</h1>
+
+    <div class="instructions">
+      <h2>How to Embed the Calendar</h2>
+      <p>
+        Follow these simple steps to embed the Lite Booking Calendar on your
+        website:
+      </p>
+
+      <h3>1. Include the embed script</h3>
+      <pre><code>&lt;script src="https://your-domain.com/embed.js"&gt;&lt;/script&gt;</code></pre>
+
+      <h3>2. Add a container element</h3>
+      <pre><code>&lt;div id="lite-booking-calendar" data-api="https://your-api-endpoint"&gt;&lt;/div&gt;</code></pre>
+
+      <p>
+        The <code>data-api</code> attribute is optional. If provided, it
+        specifies the API endpoint for fetching calendar data.
+      </p>
+
+      <h3>3. Optional: Customize the appearance</h3>
+      <p>
+        You can customize the appearance of the calendar by including the custom
+        CSS file before the embed script:
+      </p>
+      <pre><code>&lt;link rel="stylesheet" href="https://your-domain.com/calendar-custom.css"&gt;
+&lt;script src="https://your-domain.com/embed.js"&gt;&lt;/script&gt;</code></pre>
+
+      <p>
+        Then modify the CSS variables in the
+        <code>calendar-custom.css</code> file to match your website's design.
+      </p>
+
+      <h3>WordPress Integration</h3>
+      <p>
+        For WordPress, you can add the above code to a Custom HTML block or use
+        the provided WordPress plugin for easier integration.
+      </p>
+    </div>
+
+    <h2>Live Example</h2>
+
+    <!-- Include the embed script -->
+    <script src="embed.js"></script>
+
+    <!-- Add the container element -->
+    <div id="lite-booking-calendar"></div>
+  </body>
+</html>

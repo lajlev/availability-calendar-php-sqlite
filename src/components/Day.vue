@@ -17,7 +17,16 @@
         v-for="option in statusOptions"
         :key="option.value"
         @click.stop="updateStatus(option.value)"
-        class="block w-full text-left px-4 py-2 text-sm hover:bg-gray-100"
+        :class="[
+          'block w-full text-left px-4 py-2 text-sm hover:bg-gray-100',
+          option.value === 'available'
+            ? 'text-green-600'
+            : option.value === 'booked'
+            ? 'text-red-600'
+            : option.value === 'half-booked'
+            ? 'text-amber-600'
+            : '',
+        ]"
       >
         {{ option.label }}
       </button>

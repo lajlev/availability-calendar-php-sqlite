@@ -1,6 +1,6 @@
 <template>
   <div>
-    <div class="flex justify-between items-center mb-6">
+    <div class="flex justify-center items-center mb-6">
       <div class="flex items-center space-x-4">
         <button
           @click="previousYear"
@@ -60,6 +60,53 @@
         :isAdmin="isAdmin"
         @update-date="updateDateStatus"
       />
+    </div>
+    <div class="flex justify-center items-center mb-6">
+      <div class="flex items-center space-x-4">
+        <button
+          @click="previousYear"
+          class="px-3 py-1 bg-gray-200 rounded hover:bg-gray-300 flex items-center"
+          :disabled="yearOffset <= 0"
+          :class="{ 'opacity-50 cursor-not-allowed': yearOffset <= 0 }"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            class="h-4 w-4 mr-1"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M15 19l-7-7 7-7"
+            />
+          </svg>
+        </button>
+
+        <span class="font-medium">{{ currentYearDisplay }}</span>
+
+        <button
+          @click="nextYear"
+          class="px-3 py-1 bg-gray-200 rounded hover:bg-gray-300 flex items-center"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            class="h-4 w-4 ml-1"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M9 5l7 7-7 7"
+            />
+          </svg>
+        </button>
+      </div>
     </div>
   </div>
 </template>

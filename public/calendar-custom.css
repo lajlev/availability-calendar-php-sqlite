@@ -1,0 +1,103 @@
+/**
+ * Lite Booking Calendar - Custom CSS
+ * 
+ * This file contains customizable CSS variables that can be used to change
+ * the appearance of the embedded calendar without modifying the HTML file.
+ * 
+ * To use this file:
+ * 1. Modify the CSS variables below to match your website's design
+ * 2. Include this file in your HTML page before the embed.js script
+ */
+
+:root {
+  /* Calendar container */
+  --calendar-background: #ffffff;
+  --calendar-text-color: #333333;
+  --calendar-border-radius: 8px;
+  --calendar-box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+
+  /* Month header */
+  --month-header-font-size: 1.25rem;
+  --month-header-font-weight: 500;
+  --month-header-margin-bottom: 1rem;
+  --month-header-color: #333333;
+
+  /* Day cells */
+  --day-cell-size: 40px;
+  --day-cell-border-radius: 4px;
+  --day-cell-font-size: 0.875rem;
+
+  /* Navigation buttons */
+  --nav-button-background: #f3f4f6;
+  --nav-button-hover-background: #e5e7eb;
+  --nav-button-text-color: #333333;
+  --nav-button-border-radius: 4px;
+
+  /* Status colors */
+  --status-available-background: #dcfce7;
+  --status-available-color: #166534;
+  --status-booked-background: #fee2e2;
+  --status-booked-color: #991b1b;
+  --status-half-booked-background: #fef3c7;
+  --status-half-booked-color: #92400e;
+
+  /* Past dates */
+  --past-date-opacity: 0.5;
+}
+
+/* Apply custom styles to the embedded calendar */
+#embedded-calendar {
+  color: var(--calendar-text-color);
+}
+
+#embedded-calendar .bg-white {
+  background-color: var(--calendar-background);
+  border-radius: var(--calendar-border-radius);
+  box-shadow: var(--calendar-box-shadow);
+}
+
+#embedded-calendar h3 {
+  font-size: var(--month-header-font-size);
+  font-weight: var(--month-header-font-weight);
+  margin-bottom: var(--month-header-margin-bottom);
+  color: var(--month-header-color);
+}
+
+#embedded-calendar .calendar-day {
+  height: var(--day-cell-size);
+  width: var(--day-cell-size);
+  border-radius: var(--day-cell-border-radius);
+}
+
+#embedded-calendar .calendar-day span {
+  font-size: var(--day-cell-font-size);
+}
+
+#embedded-calendar button {
+  background-color: var(--nav-button-background);
+  color: var(--nav-button-text-color);
+  border-radius: var(--nav-button-border-radius);
+}
+
+#embedded-calendar button:hover:not(:disabled) {
+  background-color: var(--nav-button-hover-background);
+}
+
+#embedded-calendar .status-available {
+  background-color: var(--status-available-background);
+  color: var(--status-available-color);
+}
+
+#embedded-calendar .status-booked {
+  background-color: var(--status-booked-background);
+  color: var(--status-booked-color);
+}
+
+#embedded-calendar .status-half-booked {
+  background-color: var(--status-half-booked-background);
+  color: var(--status-half-booked-color);
+}
+
+#embedded-calendar .calendar-day.past {
+  opacity: var(--past-date-opacity);
+}
