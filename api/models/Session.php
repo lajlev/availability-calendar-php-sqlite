@@ -7,13 +7,33 @@ require_once __DIR__ . '/../config/database.php';
 
 class Session {
     private $db;
-    private $adminPassword = 'morjet'; // In a real app, this would be stored securely
     
     /**
      * Constructor
      */
     public function __construct() {
         $this->db = Database::getInstance();
+        $this->initializeAdminPassword();
+    }
+    
+    /**
+     * Initialize admin password if it doesn't exist
+     */
+    private function initializeAdminPassword() {
+        // Check if admin_settings table exists, if not create it
+        $this->db->query('
+            CREATE TABLE IF NOT EXISTS admin_settings (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                setting_key TEXT NOT NULL UNIQUE,
+                setting_value TEXT NOT NULL,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+        ');
+        
+        // Check if admin password exists
+        $password = $this->getAdminPassword();
+        
     }
     
     /**
@@ -21,7 +41,8 @@ class Session {
      */
     public function createSession($password) {
         // Verify password
-        if ($password !== $this->adminPassword) {
+        $adminPassword = $this->getAdminPassword();
+        if ($password !== $adminPassword) {
             return false;
         }
         
@@ -76,9 +97,38 @@ class Session {
     }
     
     /**
-     * Get admin password (for debugging only)
+     * Get admin password from database
      */
     public function getAdminPassword() {
-        return $this->adminPassword;
+        $result = $this->db->fetchOne(
+            'SELECT setting_value FROM admin_settings WHERE setting_key = :key',
+            [':key' => 'admin_password']
+        );
+        
+        return $result ? $result['setting_value'] : null;
+    }
+    
+    /**
+     * Set or update admin password in database
+     */
+    public function setAdminPassword($password) {
+        // Check if password already exists
+        $existingPassword = $this->getAdminPassword();
+        
+        if ($existingPassword) {
+            // Update existing password
+            $this->db->query(
+                'UPDATE admin_settings SET setting_value = :value, updated_at = CURRENT_TIMESTAMP WHERE setting_key = :key',
+                [':key' => 'admin_password', ':value' => $password]
+            );
+        } else {
+            // Insert new password
+            $this->db->insert(
+                'INSERT INTO admin_settings (setting_key, setting_value) VALUES (:key, :value)',
+                [':key' => 'admin_password', ':value' => $password]
+            );
+        }
+        
+        return true;
     }
 }
