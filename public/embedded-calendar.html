@@ -24,31 +24,45 @@
         align-items: center;
         justify-content: center;
         border-radius: 0.25rem;
-        cursor: pointer;
+        cursor: default;
+        transition: background-color 0.2s;
       }
 
       .calendar-day.past {
         opacity: 0.5;
-        cursor: not-allowed;
+        pointer-events: none;
       }
 
       .calendar-day.admin {
         cursor: pointer;
       }
 
-      .status-available {
+      .calendar-day.available {
         background-color: #dcfce7;
-        color: #166534;
       }
 
-      .status-booked {
+      .calendar-day.available:hover {
+        background-color: #bbf7d0;
+      }
+
+      .calendar-day.booked {
         background-color: #fee2e2;
-        color: #991b1b;
       }
 
-      .status-half-booked {
+      .calendar-day.booked:hover {
+        background-color: #fecaca;
+      }
+
+      .calendar-day.half-booked {
         background-color: #fef3c7;
-        color: #92400e;
+      }
+
+      .calendar-day.half-booked:hover {
+        background-color: #fde68a;
+      }
+      /* Custom background color for card */
+      .bg-card {
+        background-color: white;
       }
     </style>
   </head>
@@ -67,8 +81,8 @@
       </div>
 
       <div v-else>
-        <div class="flex justify-between items-center mb-6">
-          <div class="flex items-center space-x-4">
+        <div class="flex justify-center items-center mb-6">
+          <div class="flex items-center space-x-4 bg-white">
             <button
               @click="previousYear"
               class="px-3 py-1 bg-gray-200 rounded hover:bg-gray-300 flex items-center"
@@ -121,13 +135,14 @@
           <div
             v-for="(monthData, index) in months"
             :key="`${monthData.year}-${monthData.month}`"
-            class="bg-white rounded-lg shadow-sm p-4"
+            class="bg-card rounded-lg shadow-sm p-4 relative"
           >
             <h3 class="text-lg font-medium mb-4">
               {{ getMonthName(new Date(monthData.year, monthData.month, 1)) }}
               {{ monthData.year }}
             </h3>
 
+            <!-- Week day headers with extra column for week numbers when in admin view -->
             <div class="grid grid-cols-7 gap-1 mb-2">
               <div
                 v-for="day in weekDays"
@@ -138,23 +153,61 @@
               </div>
             </div>
 
+            <!-- Calendar grid with week numbers -->
             <div class="grid grid-cols-7 gap-1">
-              <div
+              <!-- Get all dates for the month -->
+              <template
                 v-for="(dateInfo, dateIndex) in getDatesForMonth(monthData.year, monthData.month)"
-                :key="dateIndex"
-                :class="[
-                'calendar-day', 
-                dateInfo.date ? getStatusClass(dateInfo.status) : 'opacity-0 pointer-events-none',
-                { past: dateInfo.date && isPastDate(dateInfo.date) }
-              ]"
-                :title="dateInfo.date ? getStatusLabel(dateInfo.status) : ''"
               >
-                <span
-                  v-if="dateInfo.date"
-                  class="text-sm"
-                  >{{ dateInfo.date.getDate() }}</span
+                <!-- Add week number at the beginning of each week (clickable in admin mode) -->
+                <div
+                  v-if="dateIndex % 7 === 0 && isAdmin"
+                  class="text-xs text-center font-medium text-gray-500 absolute -left-6 self-center cursor-pointer hover:bg-gray-200"
+                  style="width: 20px"
+                  @click="showWeekStatusOptions(dateIndex, $event)"
                 >
-              </div>
+                  {{ dateInfo.date ? getWeekNumber(new Date(dateInfo.date)) : ''
+                  }}
+                </div>
+
+                <!-- Week status options dropdown -->
+                <div
+                  v-if="showingWeekOptions && selectedWeek === Math.floor(dateIndex / 7)"
+                  class="fixed bg-white border border-gray-200 rounded-md shadow-lg z-20 w-32"
+                  :style="{ top: dropdownPosition.y + 'px', left: dropdownPosition.x + 'px' }"
+                >
+                  <button
+                    v-for="option in ['available', 'booked', 'half-booked']"
+                    :key="option"
+                    @click.stop="updateWeekStatus(Math.floor(dateIndex / 7), option)"
+                    :class="[
+                      'block w-full text-left px-4 py-2 text-sm hover:bg-gray-100',
+                      option === 'available' ? 'text-green-600' :
+                      option === 'booked' ? 'text-red-600' :
+                      option === 'half-booked' ? 'text-amber-600' : ''
+                    ]"
+                  >
+                    {{ getStatusLabel(option) }}
+                  </button>
+                </div>
+
+                <!-- Regular day cell -->
+                <div
+                  :key="dateIndex"
+                  :class="[
+                  'calendar-day',
+                  dateInfo.date ? getStatusClass(dateInfo.status) : 'opacity-0 pointer-events-none',
+                  { past: dateInfo.date && isPastDate(dateInfo.date) }
+                ]"
+                  :title="dateInfo.date ? getStatusLabel(dateInfo.status) : ''"
+                >
+                  <span
+                    v-if="dateInfo.date"
+                    class="text-sm"
+                    >{{ dateInfo.date.getDate() }}</span
+                  >
+                </div>
+              </template>
             </div>
           </div>
         </div>
@@ -162,15 +215,126 @@
     </div>
 
     <script>
-      const { createApp, ref, computed } = Vue;
+      const { createApp, ref, computed, watch, nextTick } = Vue;
 
       const app = createApp({
         setup() {
           const yearOffset = ref(0);
           const dateStatuses = ref({});
           const loading = ref(true);
+          const isAdmin = ref(false); // Admin property
+          const showingWeekOptions = ref(false); // For week status dropdown
+          const selectedWeek = ref(null); // Selected week index
+          const dropdownPosition = ref({ x: 0, y: 0 }); // Position for the dropdown
           const apiBaseUrl =
             new URL(window.location.href).searchParams.get("api") || "/api";
+
+          // Check if admin parameter is provided in URL
+          const adminParam = new URL(window.location.href).searchParams.get(
+            "admin"
+          );
+          if (adminParam === "true") {
+            isAdmin.value = true;
+          }
+
+          // Show week status options
+          function showWeekStatusOptions(dateIndex, event) {
+            const weekIndex = Math.floor(dateIndex / 7);
+
+            // Toggle dropdown for the clicked week
+            if (showingWeekOptions.value && selectedWeek.value === weekIndex) {
+              showingWeekOptions.value = false;
+              selectedWeek.value = null;
+            } else {
+              showingWeekOptions.value = true;
+              selectedWeek.value = weekIndex;
+
+              // Store the position of the clicked week number
+              if (event) {
+                // Position the dropdown below the week number
+                dropdownPosition.value = {
+                  x: event.clientX - 16, // Center the dropdown horizontally
+                  y: event.clientY + 10, // Position below the week number
+                };
+
+                console.log("Dropdown position:", dropdownPosition.value);
+              }
+            }
+
+            // Stop event propagation
+            if (event) {
+              event.stopPropagation();
+            }
+          }
+
+          // Update status for all days in a week
+          function updateWeekStatus(weekIndex, status) {
+            console.log(
+              "Updating week status for week index:",
+              weekIndex,
+              "to status:",
+              status
+            );
+
+            // Get the current month data
+            const today = new Date();
+            const currentMonth = today.getMonth();
+            const currentYear = currentYearDisplay.value;
+
+            console.log("Current month/year:", currentMonth, currentYear);
+
+            // Get the dates for the current month
+            const allDates = getDatesForMonth(currentYear, currentMonth);
+
+            console.log("All dates count:", allDates.length);
+
+            // Calculate start and end indices for the week
+            const startIndex = weekIndex * 7;
+            const endIndex = startIndex + 7;
+
+            console.log("Start/end indices:", startIndex, endIndex);
+
+            // Update each valid date in the week
+            for (let i = startIndex; i < endIndex && i < allDates.length; i++) {
+              const dateInfo = allDates[i];
+              if (dateInfo.date) {
+                const dateString = formatDate(dateInfo.date);
+                console.log("Updating date:", dateString, "to status:", status);
+                updateDateStatus(dateInfo.date, status);
+              }
+            }
+
+            // Close the dropdown
+            showingWeekOptions.value = false;
+          }
+
+          // Update a single date status
+          async function updateDateStatus(date, status) {
+            if (!isAdmin.value) return;
+
+            try {
+              const dateString = formatDate(date);
+              const response = await axios.post(
+                `${apiBaseUrl}/dates/${dateString}`,
+                { status }
+              );
+
+              // Update local state
+              dateStatuses.value[dateString] = status;
+            } catch (error) {
+              console.error("Error updating date status:", error);
+            }
+          }
+
+          // Close dropdown when clicking outside
+          function handleClickOutside(event) {
+            if (showingWeekOptions.value) {
+              showingWeekOptions.value = false;
+            }
+          }
+
+          // Add event listener for clicks outside
+          window.addEventListener("click", handleClickOutside);
 
           const currentYearDisplay = computed(() => {
             const today = new Date();
@@ -182,19 +346,35 @@
           function getMonths(offset = 0) {
             const today = new Date();
             const currentYear = today.getFullYear() + offset;
+            const currentMonth = today.getMonth();
             const months = [];
 
-            for (let month = 0; month < 12; month++) {
-              months.push({
-                year: currentYear,
-                month: month,
-              });
+            // If we're in the current year (offset = 0), only show current and future months
+            if (offset === 0) {
+              // Only include months from the current month onwards
+              for (let month = currentMonth; month < 12; month++) {
+                months.push({
+                  year: currentYear,
+                  month: month,
+                });
+              }
+            } else if (offset > 0) {
+              // For future years, show all 12 months
+              for (let month = 0; month < 12; month++) {
+                months.push({
+                  year: currentYear,
+                  month: month,
+                });
+              }
             }
+            // For past years (offset < 0), return an empty array as we don't want to show past years
 
             return months;
           }
 
           function previousYear() {
+            // Only allow going back to the current year (offset = 0)
+            // We don't want to show past years
             if (yearOffset.value > 0) {
               yearOffset.value--;
             }
@@ -222,11 +402,11 @@
           function getStatusClass(status) {
             switch (status) {
               case "available":
-                return "status-available";
+                return "available";
               case "booked":
-                return "status-booked";
+                return "booked";
               case "half-booked":
-                return "status-half-booked";
+                return "half-booked";
               default:
                 return "";
             }
@@ -243,6 +423,37 @@
               default:
                 return "";
             }
+          }
+
+          // Calculate the ISO week number for a given date
+          function getWeekNumber(date) {
+            if (!date) return "-";
+
+            // Create a copy of the date to avoid modifying the original
+            const d = new Date(date);
+
+            // Adjust to get the Thursday of the ISO week
+            const dayOfWeek = d.getDay(); // 0 = Sunday, 1 = Monday, ..., 6 = Saturday
+            const thursdayDiff = dayOfWeek === 0 ? -3 : 4 - dayOfWeek; // Adjust to Thursday
+
+            // Create a new date object for the Thursday of this ISO week
+            const thursday = new Date(d);
+            thursday.setDate(d.getDate() + thursdayDiff);
+
+            // The year of this Thursday is the ISO year
+            const isoYear = thursday.getFullYear();
+
+            // Get the first Thursday of the ISO year
+            const firstThursday = new Date(isoYear, 0, 1);
+            while (firstThursday.getDay() !== 4) {
+              firstThursday.setDate(firstThursday.getDate() + 1);
+            }
+
+            // Calculate the week number
+            const diff = thursday - firstThursday;
+            const weekNum = Math.floor(diff / (7 * 24 * 60 * 60 * 1000)) + 1;
+
+            return weekNum;
           }
 
           function getMonthName(date) {
@@ -315,11 +526,81 @@
           // Fetch dates on mount
           fetchDates();
 
+          // Function to send height to parent window
+          function sendHeightToParent() {
+            // Wait for the next render cycle to ensure all content is rendered
+            setTimeout(() => {
+              // Get the height of the actual content
+              const calendarElement =
+                document.getElementById("embedded-calendar");
+              const height = calendarElement
+                ? calendarElement.offsetHeight
+                : document.documentElement.scrollHeight;
+
+              console.log("Sending height to parent:", height);
+
+              // Send the height to the parent window
+              try {
+                window.parent.postMessage(
+                  { type: "lite-booking-height", height: height },
+                  "*"
+                );
+              } catch (error) {
+                console.error("Error sending height to parent:", error);
+              }
+            }, 200); // Increased timeout to ensure content is fully rendered
+          }
+
+          // Send height after initial render
+          sendHeightToParent();
+
+          // Watch for changes that might affect height
+          watch(yearOffset, () => {
+            // Wait for the DOM to update
+            nextTick(() => {
+              sendHeightToParent();
+            });
+          });
+
+          // Also send height when loading state changes
+          watch(loading, () => {
+            if (!loading.value) {
+              nextTick(() => {
+                sendHeightToParent();
+              });
+            }
+          });
+
+          // Send height on window resize
+          window.addEventListener("resize", sendHeightToParent);
+
+          // Use MutationObserver to detect DOM changes that might affect height
+          nextTick(() => {
+            const calendarElement =
+              document.getElementById("embedded-calendar");
+            if (calendarElement) {
+              const observer = new MutationObserver(() => {
+                sendHeightToParent();
+              });
+
+              observer.observe(calendarElement, {
+                childList: true,
+                subtree: true,
+                attributes: true,
+                characterData: true,
+              });
+            }
+          });
+
           return {
             yearOffset,
             currentYearDisplay,
             months,
             loading,
+            isAdmin,
+            showingWeekOptions,
+            selectedWeek,
+            dropdownPosition,
             weekDays,
             previousYear,
             nextYear,
@@ -328,6 +609,10 @@
             getStatusLabel,
             getMonthName,
             isPastDate,
+            getWeekNumber,
+            showWeekStatusOptions,
+            updateWeekStatus,
+            updateDateStatus,
           };
         },
       });

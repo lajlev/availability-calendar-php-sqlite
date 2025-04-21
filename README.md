@@ -75,46 +75,6 @@ flowchart TD
 4. **POST /api/auth/logout** - Admin logout
 5. **GET /api/auth/check** - Check if admin session is valid
 
-## Implementation Plan
-
-### 1. Project Setup
-
-1. Initialize project structure
-2. Set up Vue.js with Vite
-3. Install shadcn-vue and Tailwind CSS
-4. Set up PHP backend structure
-5. Create SQLite database and tables
-
-### 2. Backend Implementation
-
-1. Create database connection and models
-2. Implement date API endpoints
-3. Implement authentication system with session management
-4. Add middleware for admin route protection
-
-### 3. Frontend Implementation
-
-1. Create base components (App, Calendar)
-2. Implement Month and Day components
-3. Add state visualization (colors and text labels)
-4. Create admin login component
-5. Implement admin panel for changing date states
-6. Add navigation and year view
-
-### 4. Integration and Testing
-
-1. Connect frontend to backend API
-2. Test admin authentication
-3. Test date state updates
-4. Test public view
-5. Ensure proper handling of past dates
-
-### 5. Deployment
-
-1. Package application
-2. Set up server environment
-3. Deploy application
-
 ## File Structure
 
 ```
@@ -170,21 +130,6 @@ sequenceDiagram
     Backend->>-Frontend: Allow or deny access
 ```
 
-### Date State Management
-
-```mermaid
-sequenceDiagram
-    Admin->>+Frontend: Click on date
-    Frontend->>Frontend: Show state options
-    Admin->>Frontend: Select new state
-    Frontend->>+Backend: POST /api/dates/{date}
-    Backend->>Backend: Verify admin session
-    Backend->>+Database: Update date status
-    Database->>-Backend: Confirm update
-    Backend->>-Frontend: Return success
-    Frontend->>-Admin: Update UI
-```
-
 ## User Experience
 
 ### Public View
@@ -200,15 +145,6 @@ sequenceDiagram
 - Session persistence for 24 hours
 - Logout option
 
-## Development Timeline
-
-1. **Project Setup**: 1 day
-2. **Backend Implementation**: 2 days
-3. **Frontend Implementation**: 3 days
-4. **Integration and Testing**: 1 day
-5. **Deployment**: 1 day
-
-**Total Estimated Time**: 8 days
 
 ## Installation and Usage
 
@@ -262,7 +198,7 @@ Alternatively, you can run them separately:
 
 #### Admin Access
 
-The default admin password is `admin123`. You can change this in the `api/models/Session.php` file.
+You can edit admin password with update_password.php
 
 ### Building for Production
 
@@ -271,4 +207,4 @@ The default admin password is `admin123`. You can change this in the `api/models
    npm run build
    ```
 
-2. Deploy the built files along with the PHP backend to your web server.
+2. Deploy the built files `/dist` along with the PHP backend `/api` to your web server.

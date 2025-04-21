@@ -29,17 +29,27 @@
 
       // Set iframe attributes
       iframe.style.width = "100%";
-      iframe.style.height = "800px";
+      iframe.style.height = "500px"; // Initial height, will be adjusted dynamically
       iframe.style.border = "none";
       iframe.style.overflow = "hidden";
+      iframe.scrolling = "no"; // Disable scrolling in the iframe
 
-      // Set the source URL with API parameter if provided
+      // Set the source URL with parameters
       const srcUrl = new URL(
-        window.location.origin + "/embedded-calendar.html"
+        "https://calendar.landsbyidyl.dk/embedded-calendar.html"
       );
+
+      // Add API parameter if provided
       if (apiUrl) {
         srcUrl.searchParams.set("api", apiUrl);
       }
+
+      // Check if admin parameter is provided
+      const isAdmin = container.getAttribute("data-admin") === "true";
+      if (isAdmin) {
+        srcUrl.searchParams.set("admin", "true");
+      }
+
       iframe.src = srcUrl.toString();
 
       // Append iframe to container
@@ -47,8 +57,14 @@
 
       // Add resize event listener to adjust iframe height
       window.addEventListener("message", function (event) {
-        if (event.data && event.data.type === "lite-booking-height") {
-          iframe.style.height = event.data.height + "px";
+        try {
+          if (event.data && event.data.type === "lite-booking-height") {
+            console.log("Received height update:", event.data.height);
+            // Add a small buffer to prevent scrollbars (5px)
+            iframe.style.height = event.data.height + 5 + "px";
+          }
+        } catch (error) {
+          console.error("Error handling iframe height message:", error);
         }
       });
     });

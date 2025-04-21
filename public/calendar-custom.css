@@ -35,11 +35,11 @@
 
   /* Status colors */
   --status-available-background: #dcfce7;
-  --status-available-color: #166534;
+  --status-available-hover-background: #bbf7d0;
   --status-booked-background: #fee2e2;
-  --status-booked-color: #991b1b;
+  --status-booked-hover-background: #fecaca;
   --status-half-booked-background: #fef3c7;
-  --status-half-booked-color: #92400e;
+  --status-half-booked-hover-background: #fde68a;
 
   /* Past dates */
   --past-date-opacity: 0.5;
@@ -50,7 +50,8 @@
   color: var(--calendar-text-color);
 }
 
-#embedded-calendar .bg-white {
+#embedded-calendar .bg-white,
+#embedded-calendar .bg-card {
   background-color: var(--calendar-background);
   border-radius: var(--calendar-border-radius);
   box-shadow: var(--calendar-box-shadow);
@@ -83,19 +84,28 @@
   background-color: var(--nav-button-hover-background);
 }
 
-#embedded-calendar .status-available {
+#embedded-calendar .calendar-day.available {
   background-color: var(--status-available-background);
-  color: var(--status-available-color);
 }
 
-#embedded-calendar .status-booked {
+#embedded-calendar .calendar-day.available:hover {
+  background-color: var(--status-available-hover-background);
+}
+
+#embedded-calendar .calendar-day.booked {
   background-color: var(--status-booked-background);
-  color: var(--status-booked-color);
 }
 
-#embedded-calendar .status-half-booked {
+#embedded-calendar .calendar-day.booked:hover {
+  background-color: var(--status-booked-hover-background);
+}
+
+#embedded-calendar .calendar-day.half-booked {
   background-color: var(--status-half-booked-background);
-  color: var(--status-half-booked-color);
+}
+
+#embedded-calendar .calendar-day.half-booked:hover {
+  background-color: var(--status-half-booked-hover-background);
 }
 
 #embedded-calendar .calendar-day.past {
