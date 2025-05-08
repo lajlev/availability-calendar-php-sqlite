@@ -6,7 +6,8 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "start": "php dev-server.php"
   },
   "dependencies": {
     "vue": "^3.3.4",

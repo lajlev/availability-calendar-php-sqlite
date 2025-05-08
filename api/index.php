@@ -29,8 +29,13 @@ $requestUri = $_SERVER['REQUEST_URI'];
 $requestUri = strtok($requestUri, '?');
 
 // Remove base path (assuming the API is at /api)
-$basePath = '/api';
-$requestPath = substr($requestUri, strlen($basePath));
+// For direct access to the PHP server, we don't need to remove a base path
+if (strpos($requestUri, '/api') === 0) {
+    $basePath = '/api';
+    $requestPath = substr($requestUri, strlen($basePath));
+} else {
+    $requestPath = $requestUri;
+}
 
 // Remove leading and trailing slashes
 $requestPath = trim($requestPath, '/');

@@ -93,7 +93,7 @@
 }
 
 .calendar-day.past {
-  @apply opacity-50 pointer-events-none;
+  @apply bg-slate-100 pointer-events-none;
 }
 
 .calendar-day.admin {
