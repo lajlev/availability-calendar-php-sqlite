@@ -33,10 +33,6 @@
         pointer-events: none;
       }
 
-      .calendar-day.admin {
-        cursor: pointer;
-      }
-
       .calendar-day.available {
         background-color: #dcfce7;
       }
@@ -142,7 +138,7 @@
               {{ monthData.year }}
             </h3>
 
-            <!-- Week day headers with extra column for week numbers when in admin view -->
+            <!-- Week day headers -->
             <div class="grid grid-cols-7 gap-1 mb-2">
               <div
                 v-for="day in weekDays"
@@ -153,44 +149,12 @@
               </div>
             </div>
 
-            <!-- Calendar grid with week numbers -->
+            <!-- Calendar grid -->
             <div class="grid grid-cols-7 gap-1">
               <!-- Get all dates for the month -->
               <template
                 v-for="(dateInfo, dateIndex) in getDatesForMonth(monthData.year, monthData.month)"
               >
-                <!-- Add week number at the beginning of each week (clickable in admin mode) -->
-                <div
-                  v-if="dateIndex % 7 === 0 && isAdmin"
-                  class="text-xs text-center font-medium text-gray-500 absolute -left-6 self-center cursor-pointer hover:bg-gray-200"
-                  style="width: 20px"
-                  @click="showWeekStatusOptions(dateIndex, $event)"
-                >
-                  {{ dateInfo.date ? getWeekNumber(new Date(dateInfo.date)) : ''
-                  }}
-                </div>
-
-                <!-- Week status options dropdown -->
-                <div
-                  v-if="showingWeekOptions && selectedWeek === Math.floor(dateIndex / 7)"
-                  class="fixed bg-white border border-gray-200 rounded-md shadow-lg z-20 w-32"
-                  :style="{ top: dropdownPosition.y + 'px', left: dropdownPosition.x + 'px' }"
-                >
-                  <button
-                    v-for="option in ['available', 'booked', 'half-booked']"
-                    :key="option"
-                    @click.stop="updateWeekStatus(Math.floor(dateIndex / 7), option)"
-                    :class="[
-                      'block w-full text-left px-4 py-2 text-sm hover:bg-gray-100',
-                      option === 'available' ? 'text-green-600' :
-                      option === 'booked' ? 'text-red-600' :
-                      option === 'half-booked' ? 'text-amber-600' : ''
-                    ]"
-                  >
-                    {{ getStatusLabel(option) }}
-                  </button>
-                </div>
-
                 <!-- Regular day cell -->
                 <div
                   :key="dateIndex"
@@ -222,119 +186,8 @@
           const yearOffset = ref(0);
           const dateStatuses = ref({});
           const loading = ref(true);
-          const isAdmin = ref(false); // Admin property
-          const showingWeekOptions = ref(false); // For week status dropdown
-          const selectedWeek = ref(null); // Selected week index
-          const dropdownPosition = ref({ x: 0, y: 0 }); // Position for the dropdown
           const apiBaseUrl =
             new URL(window.location.href).searchParams.get("api") || "/api";
-
-          // Check if admin parameter is provided in URL
-          const adminParam = new URL(window.location.href).searchParams.get(
-            "admin"
-          );
-          if (adminParam === "true") {
-            isAdmin.value = true;
-          }
-
-          // Show week status options
-          function showWeekStatusOptions(dateIndex, event) {
-            const weekIndex = Math.floor(dateIndex / 7);
-
-            // Toggle dropdown for the clicked week
-            if (showingWeekOptions.value && selectedWeek.value === weekIndex) {
-              showingWeekOptions.value = false;
-              selectedWeek.value = null;
-            } else {
-              showingWeekOptions.value = true;
-              selectedWeek.value = weekIndex;
-
-              // Store the position of the clicked week number
-              if (event) {
-                // Position the dropdown below the week number
-                dropdownPosition.value = {
-                  x: event.clientX - 16, // Center the dropdown horizontally
-                  y: event.clientY + 10, // Position below the week number
-                };
-
-                console.log("Dropdown position:", dropdownPosition.value);
-              }
-            }
-
-            // Stop event propagation
-            if (event) {
-              event.stopPropagation();
-            }
-          }
-
-          // Update status for all days in a week
-          function updateWeekStatus(weekIndex, status) {
-            console.log(
-              "Updating week status for week index:",
-              weekIndex,
-              "to status:",
-              status
-            );
-
-            // Get the current month data
-            const today = new Date();
-            const currentMonth = today.getMonth();
-            const currentYear = currentYearDisplay.value;
-
-            console.log("Current month/year:", currentMonth, currentYear);
-
-            // Get the dates for the current month
-            const allDates = getDatesForMonth(currentYear, currentMonth);
-
-            console.log("All dates count:", allDates.length);
-
-            // Calculate start and end indices for the week
-            const startIndex = weekIndex * 7;
-            const endIndex = startIndex + 7;
-
-            console.log("Start/end indices:", startIndex, endIndex);
-
-            // Update each valid date in the week
-            for (let i = startIndex; i < endIndex && i < allDates.length; i++) {
-              const dateInfo = allDates[i];
-              if (dateInfo.date) {
-                const dateString = formatDate(dateInfo.date);
-                console.log("Updating date:", dateString, "to status:", status);
-                updateDateStatus(dateInfo.date, status);
-              }
-            }
-
-            // Close the dropdown
-            showingWeekOptions.value = false;
-          }
-
-          // Update a single date status
-          async function updateDateStatus(date, status) {
-            if (!isAdmin.value) return;
-
-            try {
-              const dateString = formatDate(date);
-              const response = await axios.post(
-                `${apiBaseUrl}/dates/${dateString}`,
-                { status }
-              );
-
-              // Update local state
-              dateStatuses.value[dateString] = status;
-            } catch (error) {
-              console.error("Error updating date status:", error);
-            }
-          }
-
-          // Close dropdown when clicking outside
-          function handleClickOutside(event) {
-            if (showingWeekOptions.value) {
-              showingWeekOptions.value = false;
-            }
-          }
-
-          // Add event listener for clicks outside
-          window.addEventListener("click", handleClickOutside);
 
           const currentYearDisplay = computed(() => {
             const today = new Date();
@@ -597,10 +450,6 @@
             currentYearDisplay,
             months,
             loading,
-            isAdmin,
-            showingWeekOptions,
-            selectedWeek,
-            dropdownPosition,
             weekDays,
             previousYear,
             nextYear,
@@ -610,9 +459,6 @@
             getMonthName,
             isPastDate,
             getWeekNumber,
-            showWeekStatusOptions,
-            updateWeekStatus,
-            updateDateStatus,
           };
         },
       });
