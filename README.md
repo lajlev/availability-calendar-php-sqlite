@@ -160,8 +160,8 @@ sequenceDiagram
 
 1. Clone the repository:
    ```
-   git clone https://github.com/yourusername/lite-booking.git
-   cd lite-booking
+   git clone github.com/lajlev/availability-calendar-php-sqlite.git
+   cd availability-calendar-php-sqlite
    ```
 
 2. Install frontend dependencies:
@@ -184,7 +184,7 @@ php dev-server.php
 
 This will start:
 - PHP backend server at http://localhost:8000
-- Vite development server at http://localhost:3000
+- Vite development server at http://localhost:5173/
 
 Alternatively, you can run them separately:
 
@@ -200,7 +200,7 @@ Alternatively, you can run them separately:
 
 #### Admin Access
 
-You can edit admin password with update_password.php
+You can edit admin password with `php api/update_password.php`
 
 ### Building for Production
 
